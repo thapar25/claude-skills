@@ -1,17 +1,26 @@
 # claude-skills
 
-Personal Claude Code skills, synced across dev machines.
+A small collection of [Claude Code](https://claude.com/claude-code) skills — reusable,
+version-controlled instructions that steer how Claude works on things like PR hygiene
+and session logging. Clone it, install it, and Claude picks up these behaviors
+automatically whenever they're relevant.
 
-## Install / update on a machine
+## What's here
 
-This repo is **private**, so a plain `curl` to raw.githubusercontent.com won't work
-(404, unauthenticated). Clone over git instead, reusing whatever GitHub auth is
-already set up on the machine (`gh auth login`, SSH keys, or on Windows the Git
-Credential Manager that ships with Git for Windows).
+| Skill | What it does |
+|---|---|
+| [`git-pr-workflow`](skills/git-pr-workflow/SKILL.md) | Keeps commits short and puts the real rationale, summary, and test plan in the PR description via `gh pr create`. |
+| [`work-log`](skills/work-log/SKILL.md) | When a meaningful chunk of work wraps up, offers to write a dated session summary to `claude-work-logs/` — only writes it once you say yes. |
+
+## Install
+
+The install scripts below clone this repo and symlink each skill into Claude
+Code's skills directory, so updates just need a `git pull` (or re-running the
+one-liner) to take effect everywhere.
 
 ### macOS / Linux / WSL (bash)
 
-```
+```bash
 git clone https://github.com/thapar25/claude-skills.git ~/.claude-skills 2>/dev/null || git -C ~/.claude-skills pull --ff-only
 bash ~/.claude-skills/install.sh
 ```
