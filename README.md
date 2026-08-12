@@ -1,5 +1,9 @@
 # claude-skills
 
+<p align="center">
+  <img src="https://cdn.simpleicons.org/claudecode/D97757" alt="Claude Code" width="200" />
+</p>
+
 A small collection of [Claude Code](https://claude.com/claude-code) skills — reusable,
 version-controlled instructions that steer how Claude works on things like PR hygiene
 and session logging. Clone it, install it, and Claude picks up these behaviors
