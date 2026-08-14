@@ -51,13 +51,17 @@ Get-ChildItem -Path (Join-Path $CloneDir "skills") -Directory | ForEach-Object {
 Write-Host "Done. Skills installed from $CloneDir into $TargetDir"
 
 # --- "Claude needs you" sound hook -------------------------------------------
-# Plays a short sound whenever Claude Code wants your attention: a permission
-# prompt (PermissionRequest), a multiple-choice question (Elicitation), or the
-# general attention notification (Notification, e.g. idle/away nudges).
-$SoundFile    = Join-Path $CloneDir "assets\sounds\pop-402322.mp3"
-$SettingsPath = Join-Path $env:USERPROFILE ".claude\settings.json"
-$HookMarker   = "claude-skills:notification-sound"
-$HookEvents   = @("Notification", "PermissionRequest", "Elicitation")
+# Plays a short sound whenever Claude Code wants a decision from you: a
+# permission prompt (PermissionRequest) or a multiple-choice question
+# (Elicitation). Deliberately NOT wired to Notification - that event also
+# fires on ordinary turn completion ("Worked for Ns"), which is too frequent.
+$SoundFile     = Join-Path $CloneDir "assets\sounds\pop-402322.mp3"
+$SettingsPath  = Join-Path $env:USERPROFILE ".claude\settings.json"
+$HookMarker    = "claude-skills:notification-sound"
+$HookEvents    = @("PermissionRequest", "Elicitation")
+# Includes events we've wired in the past, so a re-install cleans up stale
+# entries (e.g. Notification, dropped after it proved too noisy).
+$CleanupEvents = @("Notification", "PermissionRequest", "Elicitation")
 
 # Outer quoting is single-quoted deliberately: on machines with Git Bash
 # installed, Claude Code's hook runner invokes "command" hooks via bash, and
@@ -79,7 +83,7 @@ if (-not $settings.PSObject.Properties['hooks']) {
     $settings | Add-Member -MemberType NoteProperty -Name 'hooks' -Value ([PSCustomObject]@{})
 }
 
-foreach ($eventName in $HookEvents) {
+foreach ($eventName in $CleanupEvents) {
     if (-not $settings.hooks.PSObject.Properties[$eventName]) {
         $settings.hooks | Add-Member -MemberType NoteProperty -Name $eventName -Value @()
     }
@@ -91,16 +95,19 @@ foreach ($eventName in $HookEvents) {
         })
     })
 
-    $newEntry = [PSCustomObject]@{
-        matcher = ""
-        hooks   = @([PSCustomObject]@{
-            type          = "command"
-            command       = $hookCommand
-            statusMessage = $HookMarker
-        })
+    if ($eventName -in $HookEvents) {
+        $newEntry = [PSCustomObject]@{
+            matcher = ""
+            hooks   = @([PSCustomObject]@{
+                type          = "command"
+                command       = $hookCommand
+                statusMessage = $HookMarker
+            })
+        }
+        $settings.hooks.$eventName = @($kept) + @($newEntry)
+    } else {
+        $settings.hooks.$eventName = @($kept)
     }
-
-    $settings.hooks.$eventName = @($kept) + @($newEntry)
 }
 
 ($settings | ConvertTo-Json -Depth 20) | Set-Content -Path $SettingsPath -Encoding utf8

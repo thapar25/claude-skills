@@ -20,7 +20,7 @@ on lifecycle events). Clone it, install it, and these behaviors sync across ever
 
 | Hook | What it does |
 |---|---|
-| Notification sound | Plays a short pop sound (`assets/sounds/pop-402322.mp3`) on `Notification`, `PermissionRequest`, and `Elicitation` — i.e. whenever Claude Code wants your attention, a permission decision, or an answer to a question. Cross-platform: `afplay`/`paplay`/`aplay`/`ffplay` on macOS/Linux, WPF `MediaPlayer` on Windows. |
+| Notification sound | Plays a short pop sound (`assets/sounds/pop-402322.mp3`) on `PermissionRequest` and `Elicitation` — i.e. whenever Claude Code wants a permission decision or an answer to a question. Deliberately not wired to `Notification`, which also fires on ordinary turn completion and turned out too frequent. Cross-platform: `afplay`/`paplay`/`aplay`/`ffplay` on macOS/Linux, WPF `MediaPlayer` on Windows. |
 
 Sound credit: ["Film Special Effects Pop"](https://pixabay.com/sound-effects/film-special-effects-pop-402322/)
 by Dragon_Studio, via Pixabay ([license](https://pixabay.com/service/license-summary/)).

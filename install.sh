@@ -35,9 +35,10 @@ done
 echo "Done. Skills installed from $CLONE_DIR into $TARGET_DIR"
 
 # --- "Claude needs you" sound hook ----------------------------------------
-# Plays a short sound whenever Claude Code wants your attention: a permission
-# prompt (PermissionRequest), a multiple-choice question (Elicitation), or the
-# general attention notification (Notification, e.g. idle/away nudges).
+# Plays a short sound whenever Claude Code wants a decision from you: a
+# permission prompt (PermissionRequest) or a multiple-choice question
+# (Elicitation). Deliberately NOT wired to Notification - that event also
+# fires on ordinary turn completion ("Worked for Ns"), which is too frequent.
 SOUND_FILE="$CLONE_DIR/assets/sounds/pop-402322.mp3"
 SETTINGS_PATH="$HOME/.claude/settings.json"
 HOOK_MARKER="claude-skills:notification-sound"
@@ -68,7 +69,10 @@ else
 import json, os, sys
 
 settings_path, command, marker = sys.argv[1], sys.argv[2], sys.argv[3]
-hook_events = ["Notification", "PermissionRequest", "Elicitation"]
+hook_events = ["PermissionRequest", "Elicitation"]
+# Includes events we've wired in the past, so a re-install cleans up stale
+# entries (e.g. Notification, dropped after it proved too noisy).
+cleanup_events = ["Notification", "PermissionRequest", "Elicitation"]
 
 if os.path.exists(settings_path):
     with open(settings_path) as f:
@@ -85,13 +89,14 @@ def is_ours(entry):
         for h in entry.get("hooks", [])
     )
 
-for event in hook_events:
+for event in cleanup_events:
     entries = hooks.setdefault(event, [])
     entries[:] = [e for e in entries if not is_ours(e)]
-    entries.append({
-        "matcher": "",
-        "hooks": [{"type": "command", "command": command, "statusMessage": marker}],
-    })
+    if event in hook_events:
+        entries.append({
+            "matcher": "",
+            "hooks": [{"type": "command", "command": command, "statusMessage": marker}],
+        })
 
 with open(settings_path, "w") as f:
     json.dump(data, f, indent=2)
